@@ -116,7 +116,7 @@ def prepSql(result, percentile, params):
   'Msg_Size': params['Msg_Size'], 'Region': params['Region'], \
   'OS_SKU': params['OS_SKU'], 'PatchVersion': params['PatchVersion'], \
   'ResourceGroup': params['ResourceGroup'], 'vmId': params['vmId'], \
-  'PlacementMode': params['PlacementMode'], \
+  'PlacementMode': params['placement'], \
   'vmSender': params['vmSender'], 'vmReceiver': params['vmReceiver'], \
   'Avg_Latency_usec': result['Avg_Latency_usec'], \
   'Max_Latency_usec': percentile['Max_Latency_usec'], \
