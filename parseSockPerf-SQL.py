@@ -123,7 +123,7 @@ def prepSql(result, percentile, params):
   'P90_usec': percentile['90.000'],'P50_usec': percentile['50.000'], \
   'P25_usec': percentile['25.000'], \
   'Min_Latency_usec': percentile['Min_Latency_usec'], \
-  'Iterations': result['Observations'], 'Duration': result['RunTime'], 'TestTool': params['TestTool'], \ 
+  'Iterations': result['Observations'], 'Duration': result['RunTime'], 'TestTool': params['TestTool'], \
   'isFullRTT': result['isFullRTT'], 'std_Deviation': result['std_Deviation'], \
   'RawDataFile': validateAndPrepFileForUpload(params['filename']) }
   if (debug): print('SQL statement parameters: {0}\n'.format(sqlFields))
