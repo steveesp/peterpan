@@ -4,7 +4,6 @@ import json
 import platform
 import os
 import pymssql
-import re
 
 from datetime import datetime
 
