@@ -53,8 +53,8 @@ def parseSockPerfOutput(filename, result, percentile, finalResult, params):
         params['TestTool'] = 'SockPerf'
         if line.startswith('sockperf: ---> '): 
           if line.startswith('sockperf: ---> percentile'):
-            percentiles = line.split(' ')          
-            percentile[percentiles[3]] = percentiles[-1].strip()
+            percentiles = line.split(' ')
+            percentile[percentiles[3]] = percentiles[-1].strip() 
           else:
             if line.startswith('sockperf: ---> <MAX>'):
               percentile['Max_Latency_usec'] = line.split(' ')[-1].strip()
@@ -81,6 +81,9 @@ def parseSockPerfOutput(filename, result, percentile, finalResult, params):
               result['Avg_Latency_usec'] = line.split('= ')[1].split(' (')[0]
             else: ## If avg-lat are >99 usecs there'll be no space after '='
               result['Avg_Latency_usec'] = line.split('=')[5].split(' ')[0]
+            # Common fields
+            result['std_Deviation'] = line.split('std-dev=')[1].split(')')[0]
+            result['isFullRTT'] = False
 
           # avg-rtt is used instead of avg-lat when selecting full rtt results
           if 'avg-rtt' in line:
@@ -90,8 +93,11 @@ def parseSockPerfOutput(filename, result, percentile, finalResult, params):
             ## Source: https://github.com/Mellanox/sockperf/blob/31a0b54b26e4619b79d1296ad608e03075e9e255/src/client.cpp
             if len(line.split('= ')) > 1: ## If avg-rtt =<99 usecs there'll be space after '= '
               result['Avg_Latency_usec'] = line.split('= ')[1].split(' (')[0]
-            else: ## If avg-lat are >99 usecs there'll be no space after '='
+            else: ## If avg-rtt are >99 usecs there'll be no space after '='
               result['Avg_Latency_usec'] = line.split('=')[5].split(' ')[0]
+            # Common fields
+            result['std_Deviation'] = line.split('std-dev=')[1].split(')')[0]
+            result['isFullRTT'] = True
 
       else:
         if (debug): print('Unrecognized input: {0}\n'.format(line))
@@ -115,8 +121,11 @@ def prepSql(result, percentile, params):
   'P59s_usec': percentile['99.999'],'P49s_usec': percentile['99.990'], \
   'P39s_usec': percentile['99.900'],'P99_usec': percentile['99.000'], \
   'P90_usec': percentile['90.000'],'P50_usec': percentile['50.000'], \
+  'P25_usec': percentile['25.000'], \
   'Min_Latency_usec': percentile['Min_Latency_usec'], \
-  'Iterations': result['Observations'], 'Duration': result['RunTime'], 'TestTool': params['TestTool'], 'RawDataFile': validateAndPrepFileForUpload(params['filename']) }
+  'Iterations': result['Observations'], 'Duration': result['RunTime'], 'TestTool': params['TestTool'], \ 
+  'isFullRTT': result['isFullRTT'], 'std_Deviation': result['std_Deviation'], \
+  'RawDataFile': validateAndPrepFileForUpload(params['filename']) }
   if (debug): print('SQL statement parameters: {0}\n'.format(sqlFields))
   return sqlFields
 
@@ -177,23 +186,25 @@ def genSql(sqlFields):
   ftdtime = dtime.strftime("%Y-%m-%d %H:%M:%S")
   sql = "insert into " + db_VnetLatencyTbl +\
   " (TestDate,VMSize,IsLinux,OS_Distro,AccelNetOn," \
-  "Msg_Size,Iterations,Duration_Sec,Avg_Latency_usec,Max_Latency_usec," \
-  "P59s_usec,P49s_usec,P39s_usec,P99_usec,P90_usec,P50_usec,Min_Latency_usec," \
-  "Region,OS_SKU,PatchVersion,ResourceGroup,vmId,vmSender,vmReceiver,TestTool,RawDataFile)" \
+  "Msg_Size,Iterations,Duration_Sec,Avg_Latency_usec,std_Deviation,Max_Latency_usec," \
+  "P59s_usec,P49s_usec,P39s_usec,P99_usec,P90_usec,P50_usec,P25_usec,Min_Latency_usec," \
+  "Region,OS_SKU,PatchVersion,ResourceGroup,vmId,vmSender,vmReceiver,TestTool,isFullRTT,RawDataFile)" \
    "values('{0}','{1}','{2}','{3}','{4}','{5}'," \
    "'{6}','{7}','{8}','{9}','{10}','{11}'," \
    "'{12}','{13}','{14}','{15}'," \
    "'{16}','{17}','{18}','{19}'," \
    "'{20}','{21}','{22}','{23}'," \
-   "'{24}','{25}')".format( \
+   "'{24}','{25}','{26}','{27}','{28}')".format( \
 str(ftdtime),sqlFields['VMSize'],sqlFields['IsLinux'],\
 sqlFields['OS_Distro'],sqlFields['AccelNetOn'],sqlFields['Msg_Size'],\
 sqlFields['Iterations'],sqlFields['Duration'],sqlFields['Avg_Latency_usec'],\
+sqlFields['std_Deviation'], \
 sqlFields['Max_Latency_usec'], sqlFields['P59s_usec'],sqlFields['P49s_usec'],\
 sqlFields['P39s_usec'], sqlFields['P99_usec'], sqlFields['P90_usec'],\
-sqlFields['P50_usec'], sqlFields['Min_Latency_usec'],sqlFields['Region'],\
+sqlFields['P50_usec'], sqlFields['P25_usec'], sqlFields['Min_Latency_usec'],sqlFields['Region'],\
 sqlFields['OS_SKU'],sqlFields['PatchVersion'],sqlFields['ResourceGroup'],\
-sqlFields['vmId'],sqlFields['vmSender'],sqlFields['vmReceiver'],sqlFields['TestTool'],sqlFields['RawDataFile'])
+sqlFields['vmId'],sqlFields['vmSender'],sqlFields['vmReceiver'],sqlFields['TestTool'],\
+sqlFields['isFullRTT'],sqlFields['RawDataFile'])
   return sql
 
 def sqlInsert(sqlStatement):
