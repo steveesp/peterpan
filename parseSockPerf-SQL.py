@@ -22,14 +22,14 @@ def checkAndPrepArgs():
   """
   params = {}
   global hasAccelNet
-  if len(sys.argv) < 5:
+  if len(sys.argv) < 6:
     print('Not enough arguments provided. \n')
     print('\n***USAGE: The following parameters are required:')
-    print('  AN|NoAN MsgSize vmSender vmReceiver filePath')
+    print('  AN|NoAN MsgSize vmSender vmReceiver filePath placementMode')
     print(' Optional string: the receiver\'s name')
     print('Actual number of arguments provided:', len(sys.argv))
     print('  Argument List provided:', str(sys.argv))
-    print('Example:', sys.argv[0], 'AN 4 vmone vmtwo')
+    print('Example:', sys.argv[0], 'AN 4 vmone vmtwo sockperf.out AvSet')
     print('\n*** EXITING ***')
     sys.exit(1)
   else:
@@ -40,7 +40,8 @@ def checkAndPrepArgs():
     params['vmSender'] = sys.argv[3]
     params['vmReceiver'] = sys.argv[4]
     params['filename'] = sys.argv[5]
-
+    params['placement'] = sys.argv[6]
+    
     return params
 
 def parseSockPerfOutput(filename, result, percentile, finalResult, params):
@@ -115,6 +116,7 @@ def prepSql(result, percentile, params):
   'Msg_Size': params['Msg_Size'], 'Region': params['Region'], \
   'OS_SKU': params['OS_SKU'], 'PatchVersion': params['PatchVersion'], \
   'ResourceGroup': params['ResourceGroup'], 'vmId': params['vmId'], \
+  'PlacementMode': params['PlacementMode'], \
   'vmSender': params['vmSender'], 'vmReceiver': params['vmReceiver'], \
   'Avg_Latency_usec': result['Avg_Latency_usec'], \
   'Max_Latency_usec': percentile['Max_Latency_usec'], \
@@ -185,7 +187,7 @@ def genSql(sqlFields):
   dtime = datetime.now()
   ftdtime = dtime.strftime("%Y-%m-%d %H:%M:%S")
   sql = "insert into " + db_VnetLatencyTbl +\
-  " (TestDate,VMSize,IsLinux,OS_Distro,AccelNetOn," \
+  " (TestDate,VMSize,IsLinux,OS_Distro,AccelNetOn,PlacementMode," \
   "Msg_Size,Iterations,Duration_Sec,Avg_Latency_usec,std_Deviation,Max_Latency_usec," \
   "P59s_usec,P49s_usec,P39s_usec,P99_usec,P90_usec,P50_usec,P25_usec,Min_Latency_usec," \
   "Region,OS_SKU,PatchVersion,ResourceGroup,vmId,vmSender,vmReceiver,TestTool,isFullRTT,RawDataFile)" \
@@ -194,11 +196,11 @@ def genSql(sqlFields):
    "'{12}','{13}','{14}','{15}'," \
    "'{16}','{17}','{18}','{19}'," \
    "'{20}','{21}','{22}','{23}'," \
-   "'{24}','{25}','{26}','{27}','{28}')".format( \
+   "'{24}','{25}','{26}','{27}','{28}','{29}')".format( \
 str(ftdtime),sqlFields['VMSize'],sqlFields['IsLinux'],\
-sqlFields['OS_Distro'],sqlFields['AccelNetOn'],sqlFields['Msg_Size'],\
+sqlFields['OS_Distro'],sqlFields['AccelNetOn'],sqlFields['PlacementMode'],sqlFields['Msg_Size'],\
 sqlFields['Iterations'],sqlFields['Duration'],sqlFields['Avg_Latency_usec'],\
-sqlFields['std_Deviation'], \
+sqlFields['std_Deviation'],\
 sqlFields['Max_Latency_usec'], sqlFields['P59s_usec'],sqlFields['P49s_usec'],\
 sqlFields['P39s_usec'], sqlFields['P99_usec'], sqlFields['P90_usec'],\
 sqlFields['P50_usec'], sqlFields['P25_usec'], sqlFields['Min_Latency_usec'],sqlFields['Region'],\
