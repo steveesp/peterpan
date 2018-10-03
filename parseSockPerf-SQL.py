@@ -81,7 +81,7 @@ def parseSockPerfOutput(filename, result, percentile, finalResult, params):
             if len(line.split('= ')) > 1: ## If avg-lat =<99 usecs there'll be space after '= '
               result['Avg_Latency_usec'] = line.split('= ')[1].split(' (')[0]
             else: ## If avg-lat are >99 usecs there'll be no space after '='
-              result['Avg_Latency_usec'] = ''.join(re.split('(\d+)',line)[1:4])
+              result['Avg_Latency_usec'] = line.split('=')[5].split(' ')[0]
 
           # avg-rtt is used instead of avg-lat when selecting full rtt results
           if 'avg-rtt' in line:
@@ -89,10 +89,10 @@ def parseSockPerfOutput(filename, result, percentile, finalResult, params):
             ## This is due to sockperf format reserving 7 positions for the output
             ## as follows: avg-lat=%7.3lf
             ## Source: https://github.com/Mellanox/sockperf/blob/31a0b54b26e4619b79d1296ad608e03075e9e255/src/client.cpp
-            if len(line.split('= ')) > 1: ## If avg-lat =<99 usecs there'll be space after '= '
+            if len(line.split('= ')) > 1: ## If avg-rtt =<99 usecs there'll be space after '= '
               result['Avg_Latency_usec'] = line.split('= ')[1].split(' (')[0]
             else: ## If avg-lat are >99 usecs there'll be no space after '='
-              result['Avg_Latency_usec'] = ''.join(re.split('(\d+)',line)[1:4])
+              result['Avg_Latency_usec'] = line.split('=')[5].split(' ')[0]
 
       else:
         if (debug): print('Unrecognized input: {0}\n'.format(line))
