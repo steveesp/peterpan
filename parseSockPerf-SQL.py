@@ -37,10 +37,10 @@ def checkAndPrepArgs():
     if  test_AN == "AN": hasAccelNet = 1 ## Otherwise default is zero
     params['AccelNetOn'] = hasAccelNet
     params['Msg_Size'] = sys.argv[2]  
-    params['vmSender'] = sys.argv[3]
-    params['vmReceiver'] = sys.argv[4]
-    params['filename'] = sys.argv[5]
-    params['placement'] = sys.argv[6]
+#    params['vmSender'] = sys.argv[3]
+    params['vmReceiver'] = sys.argv[3]
+    params['filename'] = sys.argv[4]
+    params['placement'] = sys.argv[5]
     
     return params
 
@@ -147,7 +147,8 @@ def gather_metadata(params):
     params['OS_SKU'] = jtext['compute']['sku']
     params['vmId'] = jtext['compute']['vmId']
     params['OS_Distro'] = jtext['compute']['offer']
-    
+    params['vmSender'] = jtext['compute']['name']
+	
     if jtext['compute']['osType'] == "Linux":
       params['IsLinux'] = "True"
     else:
