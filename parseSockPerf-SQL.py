@@ -8,10 +8,11 @@ import pymssql
 from datetime import datetime
 
 # Globals
+# Do not set paths on files because the path is searched here in code
 debug = False
 rgfile = 'resgrp.txt'
 db_VnetLatencyTbl = 'Tbl_VnetLatency'
-credSQL = './connectionstring.txt'
+credSQL = 'connectionstring.txt'
 isLinux = 1
 hasAccelNet = 0
 TestTool = "SockPerf"
@@ -166,6 +167,7 @@ def gather_metadata(params):
 def getRGName(params):
   """getRGName finds the resource group name
   """
+  global rgfile
   if os.path.isfile('./' + rgfile):
     with open('./' + rgfile, 'r') as rgf:
       resGrp = rgf.readline().strip()
@@ -255,7 +257,7 @@ def main():
   result = {} 
   percentile = {}
   finalResult = { 'Summary': result, 'Details': percentile }
-  credSQL = './connectionstring.txt'
+  global credSQL
 
   ## Check SQL creds file exists.
   if os.path.exists('./' + credSQL):
